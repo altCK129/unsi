@@ -3,9 +3,9 @@ name: Android Debug Build
 
 on:
   push:
-    branches: [patch-4, main]
+    branches: [patch-8, main]
   pull_request:
-    branches: [patch-4, main]
+    branches: [patch-8, main]
   workflow_dispatch:
 
 jobs:
