@@ -1315,7 +1315,7 @@ const ContinueWatchingSection = React.forwardRef<ContinueWatchingRef>((props, re
             </Text>
           </View>
         )}
-      </View>
+      
     </TouchableOpacity>
   ), [currentTheme.colors, handleContentPress, handleLongPress, deletingItemId, computedItemWidth, computedItemHeight, isTV, isLargeTablet, isTablet]);
 
