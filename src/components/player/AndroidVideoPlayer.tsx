@@ -105,11 +105,26 @@ const AndroidVideoPlayer: React.FC = () => {
   const pinchRef = useRef(null);
   const tracksHook = usePlayerTracks();
 
-  const castState = useCastState();
-  const remoteMediaClient = useRemoteMediaClient();
-  const isCasting = Boolean(remoteMediaClient);
-  const castDeviceName =
-    remoteMediaClient?.getSession?.()?.device?.friendlyName;
+  const [castReady, setCastReady] = React.useState(false);
+  React.useEffect(() => {
+    const timeout = setTimeout(() => setCastReady(true), 0);
+    return () => clearTimeout(timeout);
+  }, []);
+  const castState = castReady ? useCastState() : CastState.NO_DEVICES_AVAILABLE;
+  const remoteMediaClient = castReady ? useRemoteMediaClient() : null;
+  const isCasting = !!remoteMediaClient && castReady;
+  const castDeviceName = React.useMemo(() => {
+    if (!remoteMediaClient) return undefined;
+
+    try {
+      return remoteMediaClient
+        .getSession?.()
+        ?.device
+        ?.friendlyName;
+    } catch {
+      return undefined;
+    }
+  }, [remoteMediaClient]);
 
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string>(uri);
   const canShowCastButton =
@@ -1031,7 +1046,7 @@ const AndroidVideoPlayer: React.FC = () => {
               justifyContent: 'center',
               alignItems: 'center',
               backgroundColor: 'rgba(0,0,0,0.35)',
-              zIndex: 25,
+              zIndex: 5,
             }}
           >
             <View
@@ -1043,6 +1058,7 @@ const AndroidVideoPlayer: React.FC = () => {
                 alignItems: 'center',
               }}
             >
+              {/* Title */}
               <Text
                 style={{
                   color: 'white',
@@ -1050,9 +1066,10 @@ const AndroidVideoPlayer: React.FC = () => {
                   fontWeight: '600',
                 }}
               >
-                Casting to TV
+                Casting
               </Text>
-
+              
+              {/* Device name / fallback */}
               <Text
                 style={{
                   color: 'rgba(255,255,255,0.8)',
@@ -1060,9 +1077,7 @@ const AndroidVideoPlayer: React.FC = () => {
                   marginTop: 4,
                 }}
               >
-                {castDeviceName
-                  ? `Casting to ${castDeviceName}`
-                  : 'Casting to TV'}
+                {castDeviceName || 'TV'}
               </Text>
             </View>
           </View>
