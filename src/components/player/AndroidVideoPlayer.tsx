@@ -16,7 +16,6 @@ import {
 
 // chromecast
 import {
-  CastButton,
   useCastState,
   useRemoteMediaClient,
   CastState,
@@ -105,14 +104,9 @@ const AndroidVideoPlayer: React.FC = () => {
   const pinchRef = useRef(null);
   const tracksHook = usePlayerTracks();
 
-  const [castReady, setCastReady] = React.useState(false);
-  React.useEffect(() => {
-    const timeout = setTimeout(() => setCastReady(true), 0);
-    return () => clearTimeout(timeout);
-  }, []);
-  const castState = castReady ? useCastState() : CastState.NO_DEVICES_AVAILABLE;
-  const remoteMediaClient = castReady ? useRemoteMediaClient() : null;
-  const isCasting = !!remoteMediaClient && castReady;
+  const castState = useCastState();
+  const remoteMediaClient = useRemoteMediaClient();
+  const isCasting = Boolean(remoteMediaClient);
 
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string>(uri);
   const canShowCastButton =
@@ -321,7 +315,15 @@ const AndroidVideoPlayer: React.FC = () => {
 
   useEffect(() => {
     if (!remoteMediaClient) return;
-    
+
+    let session;
+    try {
+      session = remoteMediaClient.getSession?.();
+    } catch {
+      return;
+    }
+
+    if (!session) return;
     if (!isCastSupportedStream(currentStreamUrl)) return;
 
     try {
@@ -378,6 +380,15 @@ const AndroidVideoPlayer: React.FC = () => {
 
   useEffect(() => {
     if (!remoteMediaClient) return;
+
+    let session;
+    try {
+      session = remoteMediaClient.getSession?.();
+    } catch {
+      return;
+    }
+
+    if (!session) return;
 
     if (playerState.paused) {
       remoteMediaClient.pause();
