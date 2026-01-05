@@ -1066,7 +1066,7 @@ const AndroidVideoPlayer: React.FC = () => {
               </Text>
             </View>
           </View>
-        }}
+        )}
 
         <PauseOverlay
           visible={playerState.paused && !playerState.showControls}
