@@ -113,18 +113,6 @@ const AndroidVideoPlayer: React.FC = () => {
   const castState = castReady ? useCastState() : CastState.NO_DEVICES_AVAILABLE;
   const remoteMediaClient = castReady ? useRemoteMediaClient() : null;
   const isCasting = !!remoteMediaClient && castReady;
-  const castDeviceName = React.useMemo(() => {
-    if (!remoteMediaClient) return undefined;
-
-    try {
-      return remoteMediaClient
-        .getSession?.()
-        ?.device
-        ?.friendlyName;
-    } catch {
-      return undefined;
-    }
-  }, [remoteMediaClient]);
 
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string>(uri);
   const canShowCastButton =
@@ -139,6 +127,8 @@ const AndroidVideoPlayer: React.FC = () => {
 
   // State to force unmount VideoSurface during stream transitions
   const [isTransitioningStream, setIsTransitioningStream] = useState(false);
+
+  const [castDeviceName, setCastDeviceName] = useState<string | null>(null);
 
   // Dual video engine state: ExoPlayer primary, MPV fallback
   // If videoPlayerEngine is 'mpv', always use MPV; otherwise use auto behavior
@@ -303,8 +293,29 @@ const AndroidVideoPlayer: React.FC = () => {
   }, [playerState.showControls, playerState.paused, playerState.isDragging]);
 
   useEffect(() => {
-    if (remoteMediaClient) {
-      playerState.setPaused(true);
+    if (!remoteMediaClient) {
+      setCastDeviceName(null);
+      return;
+    }
+
+    try {
+      const session = remoteMediaClient.getSession?.();
+      const name = session?.device?.friendlyName ?? null;
+      setCastDeviceName(name);
+    } catch {
+      setCastDeviceName(null);
+    }
+  }, [remoteMediaClient]);
+
+  useEffect(() => {
+    if (!remoteMediaClient) return;
+
+    try {
+      if (remoteMediaClient.getSession?.()) {
+        playerState.setPaused(true);
+      }
+    } catch {
+
     }
   }, [remoteMediaClient]);
 
@@ -1034,7 +1045,9 @@ const AndroidVideoPlayer: React.FC = () => {
           screenDimensions={playerState.screenDimensions}
         />
 
-        {isCasting && !playerState.showControls && (
+        {isCasting &&
+          castDeviceName &&
+          !playerState.showControls && (
           <View
             pointerEvents="none"
             style={{
