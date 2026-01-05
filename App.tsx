@@ -246,6 +246,7 @@ const ThemedApp = () => {
 
 function App(): React.JSX.Element {
   return (
+  <CastContext>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <BottomSheetModalProvider>
         <GenreProvider>
