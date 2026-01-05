@@ -110,9 +110,7 @@ const AndroidVideoPlayer: React.FC = () => {
   const isCasting = Boolean(remoteMediaClient);
 
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string>(uri);
-  const canShowCastButton =
-    isCastSupportedStream(currentStreamUrl) &&
-    castState !== CastState.NO_DEVICES_AVAILABLE;
+  const canShowCastButton = isCastSupportedStream(currentStreamUrl);
   const castButton = (
     <CastButton
       style={{
