@@ -18,6 +18,7 @@ import {
 import {
   CastButton,
   useCastState,
+  useRemoteMediaClient,
   CastState,
 } from 'react-native-google-cast';
 
@@ -105,6 +106,7 @@ const AndroidVideoPlayer: React.FC = () => {
   const tracksHook = usePlayerTracks();
 
   const castState = useCastState();
+  const remoteMediaClient = useRemoteMediaClient();
 
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string>(uri);
   const canShowCastButton =
@@ -281,6 +283,12 @@ const AndroidVideoPlayer: React.FC = () => {
       }
     };
   }, [playerState.showControls, playerState.paused, playerState.isDragging]);
+
+  useEffect(() => {
+    if (remoteMediaClient) {
+      playerState.setPaused(true);
+    }
+  }, [remoteMediaClient]);
 
   useEffect(() => {
     openingAnimation.startOpeningAnimation();
