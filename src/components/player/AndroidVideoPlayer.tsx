@@ -110,7 +110,6 @@ const AndroidVideoPlayer: React.FC = () => {
   const firstFrameAtRef = useRef<number | null>(null);
   const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const castState = useCastState();
   const remoteMediaClient = useRemoteMediaClient();
   const isCasting = Boolean(remoteMediaClient);
 
