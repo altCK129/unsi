@@ -4,6 +4,7 @@ import { toast } from '@backpackapp-io/react-native-toast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { CastButton } from 'react-native-google-cast';
 
 // Shared Hooks (cross-platform)
 import {
@@ -112,6 +113,16 @@ const AndroidVideoPlayer: React.FC = () => {
   const canShowCastButton =
     isCastSupportedStream(currentStreamUrl) &&
     castState !== CastState.NO_DEVICES_AVAILABLE;
+  const castButton = (
+    <CastButton
+      style={{
+        width: 26,
+        height: 26,
+        tintColor: 'white',
+        marginLeft: 8,
+      }}
+    />
+  );
   const [currentVideoType, setCurrentVideoType] = useState<string | undefined>((route.params as any).videoType);
 
   const [availableStreams, setAvailableStreams] = useState<any>(passedAvailableStreams || {});
@@ -1030,6 +1041,8 @@ const AndroidVideoPlayer: React.FC = () => {
           isSubtitleModalOpen={modals.showSubtitleModal}
           setShowSourcesModal={modals.setShowSourcesModal}
           setShowEpisodesModal={type === 'series' ? modals.setShowEpisodesModal : undefined}
+          showCastButton={canShowCastButton}
+          CastButtonComponent={castButton}
           onSliderValueChange={(val) => { playerState.isDragging.current = true; }}
           onSlidingStart={() => { playerState.isDragging.current = true; }}
           onSlidingComplete={(val) => {
