@@ -330,7 +330,7 @@ const AndroidVideoPlayer: React.FC = () => {
   useEffect(() => {
     if (!remoteMediaClient) return;
 
-    const unsubscribe = remoteMediaClient,onMediaStatusUpdated((status) => {
+    const unsubscribe = remoteMediaClient.onMediaStatusUpdated((status) => {
       if (!status) return;
 
       if (
