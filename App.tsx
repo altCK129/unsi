@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { CastContext } from 'react-native-google-cast';
 import { StatusBar } from 'expo-status-bar';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { enableScreens, enableFreeze } from 'react-native-screens';
@@ -262,6 +263,7 @@ function App(): React.JSX.Element {
         </GenreProvider>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
+  </CastContext>
   );
 }
 
