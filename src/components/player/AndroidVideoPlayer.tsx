@@ -107,6 +107,9 @@ const AndroidVideoPlayer: React.FC = () => {
 
   const castState = useCastState();
   const remoteMediaClient = useRemoteMediaClient();
+  const isCasting = Boolean(remoteMediaClient);
+  const castDeviceName =
+    remoteMediaClient?.getSession?.()?.device?.friendlyName;
 
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string>(uri);
   const canShowCastButton =
@@ -289,6 +292,73 @@ const AndroidVideoPlayer: React.FC = () => {
       playerState.setPaused(true);
     }
   }, [remoteMediaClient]);
+
+  useEffect(() => {
+    if (!remoteMediaClient) return;
+    
+    if (!isCastSupportedStream(currentStreamUrl)) return;
+
+    try {
+      remoteMediaClient.loadMedia({
+        mediaInfo: {
+          contentUrl: currentStreamUrl,
+          contentType: isHlsStream(currentStreamUrl)
+            ? 'application/x-mpegURL'
+            : currentStreamUrl.endsWith('.webm')
+            ? 'video/webm'
+            : 'video/mp4',
+          streamType: 'BUFFERED',
+          metadata: {
+            title: episodeTitle || title || 'Streaming',
+            subtitle: streamName || streamProvider || '',
+          },
+        },
+        startTime: playerState.currentTime || 0,
+      });
+    } catch (e) {
+      logger.error('[Chromecast] Failed to load media', e);
+    }
+  }, [
+    remoteMediaClient,
+    currentStreamUrl,
+    episodeTitle,
+    title,
+    streamName,
+    streamProvider,
+  ]);
+
+  useEffect(() => {
+    if (!remoteMediaClient) return;
+
+    const unsubscribe = remoteMediaClient,onMediaStatusUpdated((status) => {
+      if (!status) return;
+
+      if (
+        typeof status.currentTime === 'number' &&
+        !playerState.isDragging.current
+      ) {
+        playerState.setCurrentTime(status.currentTime);
+      }
+
+      if (typeof status.isPaused === 'boolean') {
+        playerState.setPaused(status.isPaused);
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [remoteMediaClient]);
+
+  useEffect(() => {
+    if (!remoteMediaClient) return;
+
+    if (playerState.paused) {
+      remoteMediaClient.pause();
+    } else {
+      remoteMediaClient.play();
+    }
+  }, [playerState.paused, remoteMediaClient]);
 
   useEffect(() => {
     openingAnimation.startOpeningAnimation();
@@ -928,6 +998,12 @@ const AndroidVideoPlayer: React.FC = () => {
           onSlidingComplete={(val) => {
             playerState.isDragging.current = false;
             controlsHook.seekToTime(val);
+
+            if (remoteMediaClient) {
+              remoteMediaClient.seek({
+                position: val,
+              });
+            }
           }}
           buffered={playerState.buffered}
           formatTime={formatTime}
@@ -942,6 +1018,55 @@ const AndroidVideoPlayer: React.FC = () => {
           speed={speedControl.holdToSpeedValue}
           screenDimensions={playerState.screenDimensions}
         />
+
+        {isCasting && !playerState.showControls && (
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: 'rgba(0,0,0,0.35)',
+              zIndex: 25,
+            }}
+          >
+            <View
+              style={{
+                paddingHorizontal: 20,
+                paddingVertical: 14,
+                borderRadius: 12,
+                backgroundColor: 'rgba(0,0,0,0.75)',
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: 'white',
+                  fontSize: 16,
+                  fontWeight: '600',
+                }}
+              >
+                Casting to TV
+              </Text>
+
+              <Text
+                style={{
+                  color: 'rgba(255,255,255,0.8)',
+                  fontSize: 13,
+                  marginTop: 4,
+                }}
+              >
+                {castDeviceName
+                  ? `Casting to ${castDeviceName}`
+                  : 'Casting to TV'}
+              </Text>
+            </View>
+          </View>
+        }}
 
         <PauseOverlay
           visible={playerState.paused && !playerState.showControls}
