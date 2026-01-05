@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useMemo, useCallback, useState } from 'react';
-import { View, StyleSheet, Platform, Animated, ToastAndroid } from 'react-native';
+import { View, Text, StyleSheet, Platform, Animated, ToastAndroid } from 'react-native';
 import { toast } from '@backpackapp-io/react-native-toast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -103,6 +103,7 @@ const AndroidVideoPlayer: React.FC = () => {
   const mpvPlayerRef = useRef<MpvPlayerRef>(null);
   const exoPlayerRef = useRef<any>(null);
   const pinchRef = useRef(null);
+  const hasLoadedCastMediaRef = useRef(false);
   const tracksHook = usePlayerTracks();
 
   const castState = useCastState();
@@ -405,6 +406,12 @@ const AndroidVideoPlayer: React.FC = () => {
       remoteMediaClient.play();
     }
   }, [playerState.paused, remoteMediaClient]);
+
+  useEffect(() => {
+    if (!remoteMediaClient) {
+      hasLoadedCastMediaRef.current = false;
+    }
+  }, [remoteMediaClient]);
 
   useEffect(() => {
     openingAnimation.startOpeningAnimation();
@@ -1047,10 +1054,8 @@ const AndroidVideoPlayer: React.FC = () => {
             playerState.isDragging.current = false;
             controlsHook.seekToTime(val);
 
-            if (remoteMediaClient) {
-              remoteMediaClient.seek({
-                position: val,
-              });
+            if (remoteMediaClient?.getSession?.()) {
+              remoteMediaClient.seek({ position: val });
             }
           }}
           buffered={playerState.buffered}
