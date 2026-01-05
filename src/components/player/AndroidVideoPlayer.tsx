@@ -14,6 +14,13 @@ import {
   useWatchProgress
 } from './hooks';
 
+// chromecast
+import {
+  CastButton,
+  useCastState,
+  CastState,
+} from 'react-native-google-cast';
+
 // Android-specific hooks
 import { usePlayerSetup } from './android/hooks/usePlayerSetup';
 import { usePlayerTracks } from './android/hooks/usePlayerTracks';
@@ -63,6 +70,15 @@ import axios from 'axios';
 
 const DEBUG_MODE = false;
 
+const isMp4Stream = (url: string) =>
+  url.toLowerCase().endsWith('.mp4');
+
+const isWebmStream = (url: string) =>
+  url.toLowerCase().endsWith('.webm');
+
+const isCastSupportedStream = (url: string) =>
+  isHlsStream(url) || isMp4Stream(url) || isWebmStream(url);
+
 const AndroidVideoPlayer: React.FC = () => {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'PlayerAndroid'>>();
@@ -88,7 +104,12 @@ const AndroidVideoPlayer: React.FC = () => {
   const pinchRef = useRef(null);
   const tracksHook = usePlayerTracks();
 
+  const castState = useCastState();
+
   const [currentStreamUrl, setCurrentStreamUrl] = useState<string>(uri);
+  const canShowCastButton =
+    isCastSupportedStream(currentStreamUrl) &&
+    castState !== CastState.NO_DEVICES_AVAILABLE;
   const [currentVideoType, setCurrentVideoType] = useState<string | undefined>((route.params as any).videoType);
 
   const [availableStreams, setAvailableStreams] = useState<any>(passedAvailableStreams || {});
