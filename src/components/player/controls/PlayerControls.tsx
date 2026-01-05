@@ -39,6 +39,9 @@ interface PlayerControlsProps {
   isSubtitleModalOpen?: boolean;
   setShowSourcesModal?: (show: boolean) => void;
   setShowEpisodesModal?: (show: boolean) => void;
+  // chromecast
+  showCastButton?: boolean;
+  CastButtonComponent?: React.ReactNode;
   // Slider-specific props
   onSliderValueChange: (value: number) => void;
   onSlidingStart: () => void;
@@ -95,6 +98,8 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
   isAirPlayActive,
   allowsAirPlay,
   onAirPlayPress,
+  showCastButton,
+  CastButtonComponent,
   onSwitchToMPV,
   useExoPlayer,
 }) => {
@@ -360,6 +365,10 @@ export const PlayerControls: React.FC<PlayerControlsProps> = ({
                   />
                 </TouchableOpacity>
               )}
+              
+              {/* Chromecast Button */}
+              {showCastButton && CastButtonComponent}
+              
               {/* Switch to MPV Button - Android only, when using ExoPlayer */}
               {Platform.OS === 'android' && onSwitchToMPV && useExoPlayer && (
                 <TouchableOpacity
