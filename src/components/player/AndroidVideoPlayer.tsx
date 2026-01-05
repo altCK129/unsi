@@ -106,6 +106,10 @@ const AndroidVideoPlayer: React.FC = () => {
   const hasLoadedCastMediaRef = useRef(false);
   const tracksHook = usePlayerTracks();
 
+  const loadStartAtRef = useRef<number | null>(null);
+  const firstFrameAtRef = useRef<number | null>(null);
+  const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
+
   const castState = useCastState();
   const remoteMediaClient = useRemoteMediaClient();
   const isCasting = Boolean(remoteMediaClient);
@@ -648,10 +652,6 @@ const AndroidVideoPlayer: React.FC = () => {
     if (playerState.isDragging.current) return;
     playerState.setShowControls(false);
   }, []);
-
-  const loadStartAtRef = useRef<number | null>(null);
-  const firstFrameAtRef = useRef<number | null>(null);
-  const controlsTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const handleClose = useCallback(() => {
     if (navigation.canGoBack()) navigation.goBack();
